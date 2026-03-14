@@ -1,26 +1,23 @@
-"use client";
+'use client';
 
-import { useTheme } from "next-themes";
-import { Sun, Moon, LogOut } from "lucide-react";
-import { signOut } from "@/lib/actions/auth";
-import { getInitials } from "@/lib/utils";
-import type { Profile } from "@/types";
+import { useTheme } from 'next-themes';
+import { Sun, Moon, LogOut } from 'lucide-react';
+import { signOut } from '@/lib/actions/auth';
+import { getInitials } from '@/utils';
+import { useSessionContext } from '@/lib/context/session-context';
 
-interface TopBarProps {
-  profile: Profile;
-}
-
-export function TopBar({ profile }: TopBarProps) {
+export function TopBar() {
   const { theme, setTheme } = useTheme();
+  const { profile } = useSessionContext();
 
   return (
     <header className="h-14 border-b bg-card flex items-center justify-end gap-2 px-4 shrink-0">
       <button
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         aria-label="Toggle theme"
       >
-        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </button>
 
       <div className="flex items-center gap-2 pl-2 border-l">
@@ -31,7 +28,11 @@ export function TopBar({ profile }: TopBarProps) {
           <p className="font-medium leading-none">{profile.full_name ?? profile.email}</p>
           <p className="text-xs text-muted-foreground mt-0.5">{profile.email}</p>
         </div>
-        <form action={signOut}>
+        <form
+          action={async () => {
+            await signOut();
+          }}
+        >
           <button
             type="submit"
             className="ml-2 rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"

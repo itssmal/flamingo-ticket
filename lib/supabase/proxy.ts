@@ -34,12 +34,12 @@ export async function updateSession(request: NextRequest) {
   // IMPORTANT: If you remove getClaims() and you use server-side rendering
   // with the Supabase client, your users may be randomly logged out.
   const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
+  const claims = data?.claims;
 
   if (
     request.nextUrl.pathname !== '/' &&
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
+    !claims &&
+    !request.nextUrl.pathname.startsWith('/auth/login') &&
     !request.nextUrl.pathname.startsWith('/auth')
   ) {
     // no user, potentially respond by redirecting the user to the login page
@@ -48,18 +48,61 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  const path = request.nextUrl.pathname;
+
+  const isAuthRoute = path.startsWith('/auth/login');
+  const isOnboarding = path.startsWith('/onboarding');
+  const isInvite = path.startsWith('/invite');
+  const isAuthCallback = path.startsWith('/auth/callback');
+  const isPublic = isAuthRoute || isAuthCallback;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Not logged in → send to login
+  if (!user && !isPublic && !isInvite) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/login';
+    return NextResponse.redirect(url);
+  }
+
+  // Logged in on login page → go to dashboard
+  if (user && isAuthRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
+  }
+
+  // Logged in → check if profile exists
+  if (user && !isOnboarding && !isPublic && !isInvite) {
+    console.log('user id', user.id);
+    const { data: profiles } = await supabase.from('profiles').select('id');
+
+    // .eq('id', user.id)
+    // .maybeSingle();
+
+    console.log('profile', profiles);
+
+    if (!profiles) {
+      const role = user.user_metadata?.role;
+      const url = request.nextUrl.clone();
+      // Invited user → short name form; self-signup → full onboarding
+      url.pathname = role && role !== 'admin' ? '/invite' : '/onboarding';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Has profile but trying to access onboarding → dashboard
+  if (user && (isOnboarding || isInvite)) {
+    const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+
+    if (profile) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
+  }
 
   return supabaseResponse;
 }

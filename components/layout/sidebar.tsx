@@ -2,21 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import type { Profile } from '@/types';
-import { LayoutDashboard, Users, Settings } from 'lucide-react';
-
-interface SidebarProps {
-  profile: Profile & { organizations: { name: string; slug: string } | null };
-}
+import { cn } from '@/utils';
+import { LayoutDashboard, Users, Settings, Ticket } from 'lucide-react';
+import { ThemeSwitcher } from '@/components/theme-switcher';
+import { useSessionContext } from '@/lib/context/session-context';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/tickets', label: 'Tickets', icon: Ticket },
   { href: '/admin', label: 'Admin', icon: Users, adminOnly: true },
 ];
 
-export function Sidebar({ profile }: SidebarProps) {
+export const Sidebar = () => {
   const pathname = usePathname();
+  const { profile } = useSessionContext();
 
   return (
     <aside className="w-60 flex flex-col border-r bg-card shrink-0">
@@ -24,7 +23,8 @@ export function Sidebar({ profile }: SidebarProps) {
         <div className="flex items-center gap-2">
           <span className="text-2xl">🦩</span>
           <div className="min-w-0">
-            <p className="font-semibold truncate text-sm">{profile.organizations?.name ?? 'Flamingo'}</p>
+            {/*<p className="font-semibold truncate text-sm">{profile.organizations?.name ?? 'Flamingo'}</p>*/}
+            <p className="font-semibold truncate text-sm">Flamingo</p>
             <p className="text-xs text-muted-foreground capitalize">{profile.role.replace('_', ' ')}</p>
           </div>
         </div>
@@ -52,6 +52,8 @@ export function Sidebar({ profile }: SidebarProps) {
         })}
       </nav>
 
+      <ThemeSwitcher />
+
       <div className="p-2 border-t">
         <Link
           href="/settings"
@@ -63,4 +65,4 @@ export function Sidebar({ profile }: SidebarProps) {
       </div>
     </aside>
   );
-}
+};

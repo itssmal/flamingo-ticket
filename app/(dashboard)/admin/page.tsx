@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 // import { InviteMemberForm } from "@/components/admin/invite-member-form";
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/utils';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = { title: 'Admin – Flamingo' };

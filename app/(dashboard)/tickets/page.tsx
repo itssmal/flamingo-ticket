@@ -6,6 +6,7 @@ import { TicketTable } from '@/components/features/tickets/ticket-table';
 import { ticketFiltersSchema } from '@/lib/validations/ticket';
 import type { TicketFilters } from '@/types/ticket';
 import { Plus } from 'lucide-react';
+import { getSessionData } from '@/lib/queries/session';
 
 interface TicketsPageProps {
   searchParams: Record<string, string | string[] | undefined>;
@@ -13,24 +14,24 @@ interface TicketsPageProps {
 
 export default async function TicketsPage({ searchParams }: TicketsPageProps) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  const sessionData = await getSessionData(supabase);
 
-  const { data: profile } = await supabase.from('profiles').select('organization_id, role').eq('id', user.id).single();
-  if (!profile) redirect('/login');
+  if (!sessionData) {
+    redirect('/auth/login');
+  }
+
+  const params = await searchParams;
 
   // Parse and validate filters from URL
   const rawFilters = {
-    status: searchParams.status ?? 'all',
-    priority: searchParams.priority ?? 'all',
-    assignee_id: searchParams.assignee_id ?? 'all',
-    search: searchParams.search ?? '',
-    page: searchParams.page ?? '1',
-    per_page: searchParams.per_page ?? '20',
-    sort_by: searchParams.sort_by ?? 'created_at',
-    sort_order: searchParams.sort_order ?? 'desc',
+    status: params.status ?? 'all',
+    priority: params.priority ?? 'all',
+    assignee_id: params.assignee_id ?? 'all',
+    search: params.search ?? '',
+    page: params.page ?? '1',
+    per_page: params.per_page ?? '20',
+    sort_by: params.sort_by ?? 'created_at',
+    sort_order: params.sort_order ?? 'desc',
   };
 
   const filters = ticketFiltersSchema.parse(rawFilters) as TicketFilters;
@@ -42,7 +43,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
       '*, assignee:profiles!tickets_assignee_id_fkey(id, full_name, avatar_url, email), creator:profiles!tickets_creator_id_fkey(id, full_name, avatar_url, email)',
       { count: 'exact' },
     )
-    .eq('organization_id', profile.organization_id);
+    .eq('organization_id', sessionData.profile.organization_id);
 
   if (filters.status && filters.status !== 'all') query = query.eq('status', filters.status);
   if (filters.priority && filters.priority !== 'all') query = query.eq('priority', filters.priority);

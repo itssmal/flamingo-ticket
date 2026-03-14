@@ -4,8 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 import { getSessionData } from '@/lib/queries/session';
 import { redirect } from 'next/navigation';
 import { SessionProvider } from '@/lib/context/session-context';
+import { Suspense } from 'react';
+import LayoutLoading from '@/components/layout/layout-loading';
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+async function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
 
   const sessionData = await getSessionData(supabase);
@@ -24,5 +26,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       </div>
     </SessionProvider>
+  );
+}
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<LayoutLoading />}>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+    </Suspense>
   );
 }

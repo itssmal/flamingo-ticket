@@ -19,3 +19,17 @@ export type TicketWithRelations = Ticket & {
     comments: number;
   };
 };
+
+export type TicketStats = {
+  total: number;
+  open: number;
+  in_progress: number;
+  resolved: number;
+  closed: number;
+  by_priority: {
+    low: number;
+    medium: number;
+    high: number;
+    urgent: number;
+  };
+};

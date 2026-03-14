@@ -3,19 +3,18 @@ import { User } from '@supabase/auth-js';
 import { getUser } from '@/lib/queries/session/get-user';
 import { getProfile } from '@/lib/queries/session/get-profile';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { cache } from 'react';
 
-export const getSessionData = async (supabase: SupabaseClient): Promise<{ user: User; profile: Profile } | null> => {
-  const user = await getUser(supabase);
+export const getSessionData = cache(
+  async (supabase: SupabaseClient): Promise<{ user: User; profile: Profile } | null> => {
+    const user = await getUser(supabase);
 
-  console.log('user in query', user);
+    if (!user.success || !user.data?.id) return null;
 
-  if (!user.success || !user.data?.id) return null;
+    const profile = await getProfile(supabase, user.data?.id);
 
-  const profile = await getProfile(supabase, user.data?.id);
+    if (!profile.success || !profile.data?.id) return null;
 
-  console.log('profile in query', profile);
-
-  if (!profile.success || !profile.data?.id) return null;
-
-  return { user: user.data, profile: profile.data };
-};
+    return { user: user.data, profile: profile.data };
+  },
+);

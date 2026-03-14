@@ -1,12 +1,12 @@
-import { createClient } from '@/lib/supabase/client';
 import { redirect } from 'next/navigation';
 import { magicLinkFormSchema } from '@/lib/validations';
 import { MagicLinkSignInSchema } from '@/lib/validations/magicLinkSignIn';
+import { createClient } from '@/lib/supabase/client';
 
 export type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string };
 
 export const signInWithGoogle = async (): Promise<ActionResult> => {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -26,7 +26,7 @@ export const signInMagicLink = async (formData: MagicLinkSignInSchema): Promise<
     return { success: false, error: parsed.error.message };
   }
 
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
@@ -39,7 +39,7 @@ export const signInMagicLink = async (formData: MagicLinkSignInSchema): Promise<
 };
 
 export const signOut = async (): Promise<ActionResult> => {
-  const supabase = await createClient();
+  const supabase = createClient();
   await supabase.auth.signOut();
   redirect('/auth/login');
 };

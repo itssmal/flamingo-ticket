@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GoogleLogin } from '@/components/features/auth/google-login';
 import MagicLinkLogin from '@/components/features/auth/magic-link-login';

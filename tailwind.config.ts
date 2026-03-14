@@ -57,6 +57,20 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      keyframes: {
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        "fade-soft": {
+          "0%, 100%": { opacity: "0.6" },
+          "50%": { opacity: "1" },
+        },
+      },
+      animation: {
+        float: "float 2s ease-in-out infinite",
+        "fade-soft": "fade-soft 1.5s ease-in-out infinite",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

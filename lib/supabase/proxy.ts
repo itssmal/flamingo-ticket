@@ -76,13 +76,10 @@ export async function updateSession(request: NextRequest) {
 
   // Logged in → check if profile exists
   if (user && !isOnboarding && !isPublic && !isInvite) {
-    console.log('user id', user.id);
     const { data: profiles } = await supabase.from('profiles').select('id');
 
     // .eq('id', user.id)
     // .maybeSingle();
-
-    console.log('profile', profiles);
 
     if (!profiles) {
       const role = user.user_metadata?.role;

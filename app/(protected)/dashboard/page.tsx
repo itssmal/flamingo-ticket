@@ -1,22 +1,15 @@
 import { StatsCards } from '@/components/features/dashboard/stats-cards';
-import { createClient } from '@/lib/supabase/server';
 import { getTicketsStats } from '@/lib/queries/ticket/get-stats';
-import { getSessionData } from '@/lib/queries/session';
-import { redirect } from 'next/navigation';
 import { getRecentTickets } from '@/lib/queries/ticket/get-tickets';
 import { RecentTickets } from '@/components/features/dashboard/recent-tickets';
+import { requireAuth } from '@/lib/queries/auth';
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const session = await getSessionData(supabase);
-
-  if (!session) {
-    redirect('/auth/login');
-  }
+  const { supabase, activeOrgId } = await requireAuth();
 
   const [stats, recentTickets] = await Promise.all([
-    getTicketsStats(supabase, session.profile.organization_id),
-    getRecentTickets(supabase, session.profile.organization_id),
+    getTicketsStats(supabase, activeOrgId),
+    getRecentTickets(supabase, activeOrgId),
   ]);
 
   return (

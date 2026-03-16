@@ -36,8 +36,13 @@ export async function getOrganizations(
   }
 
   const { data, error } = await supabase.from('organization_members').select('organizations(*)').eq('user_id', id);
+
+  const orgs = ((data as unknown as Array<{ organizations: Organization }>)
+    ?.map((row) => row.organizations)
+    .filter(Boolean) ?? []) as Organization[];
+
   if (error) return { success: false, error: error.message };
 
   // Client user — no org switcher, return empty
-  return { success: true, data: data[0].organizations ?? [] };
+  return { success: true, data: orgs ?? [] };
 }

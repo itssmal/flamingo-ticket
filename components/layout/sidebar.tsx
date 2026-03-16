@@ -6,6 +6,7 @@ import { cn } from '@/utils';
 import { LayoutDashboard, Users, Settings, Ticket, Building2 } from 'lucide-react';
 import { useSessionContext } from '@/lib/context/session-context';
 import { useMemo } from 'react';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -25,10 +26,27 @@ export const Sidebar = ({ activeOrgId }: Props) => {
       <div className="h-14 border-b flex my-auto px-4">
         <div className="flex items-center gap-2">
           <Building2 className="h-4 w-4" />
-          <div className="min-w-0">
-            <p className="font-semibold truncate text-sm">{activeOrg?.name ?? 'Flamingo'}</p>
-            <p className="text-xs text-muted-foreground capitalize">{profile.role.replace('_', ' ')}</p>
-          </div>
+
+          {organizations.length > 1 ? (
+            <Select value={activeOrgId}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Organization" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {organizations.map((org) => (
+                    <SelectItem value={org.id} key={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="min-w-0">
+              <p className="font-semibold truncate text-sm">{activeOrg?.name ?? 'Flamingo'}</p>
+            </div>
+          )}
         </div>
       </div>
 

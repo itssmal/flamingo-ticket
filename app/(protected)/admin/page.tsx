@@ -1,27 +1,18 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { InviteMemberForm } from '@/components/features/admin/invite-member-form';
 import { formatDate } from '@/utils';
 import type { Metadata } from 'next';
-import { getSessionData } from '@/lib/queries/session';
 import { getMembers } from '@/lib/queries/members/get-members';
 import { getInvites } from '@/lib/queries/invites/get-invites';
+import { requireAuth } from '@/lib/queries/auth';
 import { PendingInvites } from '@/components/features/admin/pending-invites';
-import { getActiveOrgId } from '@/utils/active-org';
 
 export const metadata: Metadata = { title: 'Admin – Flamingo' };
 
 export default async function AdminPage() {
-  const supabase = await createClient();
-  const sessionData = await getSessionData(supabase);
+  const { supabase, session, activeOrgId } = await requireAuth();
 
-  if (!sessionData || sessionData.profile.role !== 'admin') {
-    redirect('/dashboard');
-  }
-
-  const activeOrgId = await getActiveOrgId(sessionData.organizations);
-
-  if (!activeOrgId) {
+  if (session.profile.role !== 'admin') {
     redirect('/dashboard');
   }
 

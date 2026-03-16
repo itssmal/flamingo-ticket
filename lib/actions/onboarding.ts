@@ -2,11 +2,9 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
 import type { ActionResult } from './auth';
-import { randomUUID } from 'node:crypto';
-
-// ─── Validation schemas ──────────────────────────────────────
 
 const onboardingSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -25,6 +23,7 @@ const inviteCompleteSchema = z.object({
 const inviteMemberSchema = z.object({
   email: z.email('Please enter a valid email address'),
   role: z.enum(['technician', 'client_user']),
+  orgId: z.string(),
 });
 
 export async function completeOnboarding(formData: z.infer<typeof onboardingSchema>): Promise<ActionResult> {
@@ -39,36 +38,60 @@ export async function completeOnboarding(formData: z.infer<typeof onboardingSche
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'Not authenticated' };
 
+  const admin = createAdminClient();
+
+  // Check slug uniqueness
+  const { data: existing } = await admin
+    .from('organizations')
+    .select('id')
+    .eq('slug', parsed.data.org_slug)
+    .maybeSingle();
+
+  if (existing) {
+    return { success: false, error: 'This slug is already taken.' };
+  }
+
   // Create org
-  const orgId = randomUUID();
-  const { data: org, error: orgError } = await supabase.from('organizations').insert({
-    id: orgId,
-    name: parsed.data.org_name,
-    slug: parsed.data.org_slug,
-  });
+  const { data: org, error: orgError } = await admin
+    .from('organizations')
+    .insert({
+      name: parsed.data.org_name,
+      slug: parsed.data.org_slug,
+    })
+    .select('id')
+    .single();
 
-  if (orgError) return { success: false, error: orgError.message };
+  if (orgError || !org) {
+    return { success: false, error: orgError?.message ?? 'Failed to create organization' };
+  }
 
-  // Create client_user profile
-  const { data: profile, error: profileError } = await supabase.from('profiles').insert({
+  // Create profile
+  const { error: profileError } = await admin.from('profiles').insert({
     id: user.id,
     email: user.email!,
     full_name: parsed.data.full_name,
     avatar_url: user.user_metadata?.avatar_url ?? null,
     role: 'client_user',
-    organization_id: orgId,
   });
 
-  if (profileError) return { success: false, error: profileError.message };
+  if (profileError) {
+    // Rollback org if profile fails
+    await admin.from('organizations').delete().eq('id', org.id);
+    return { success: false, error: profileError.message };
+  }
 
-  // Link profile to organization
-  const { error: memberError } = await supabase.from('organization_members').insert({
+  // Create membership
+  const { error: memberError } = await admin.from('organization_members').insert({
     user_id: user.id,
-    organization_id: orgId,
-    role: 'client_user',
+    organization_id: org.id,
   });
 
-  if (memberError) return { success: false, error: memberError.message };
+  if (memberError) {
+    // Rollback both
+    await admin.from('organizations').delete().eq('id', org.id);
+    await admin.from('profiles').delete().eq('id', user.id);
+    return { success: false, error: memberError.message };
+  }
 
   redirect('/dashboard');
 }
@@ -132,30 +155,26 @@ export async function inviteMember(formData: z.infer<typeof inviteMemberSchema>)
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'Not authenticated' };
 
-  const { data: profile } = await supabase.from('profiles').select('role, organization_id').eq('id', user.id).single();
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
 
   if (!profile || profile.role !== 'admin') {
     return { success: false, error: 'Only admins can invite members.' };
   }
 
-  // Check if already a member
   const { data: existingProfile } = await supabase
     .from('profiles')
     .select('id')
     .eq('email', parsed.data.email)
-    .eq('organization_id', profile.organization_id)
     .maybeSingle();
 
   if (existingProfile) {
     return { success: false, error: 'This person is already a member of your organization.' };
   }
 
-  // Check for pending invite
   const { data: existingInvite } = await supabase
     .from('invites')
     .select('id')
     .eq('email', parsed.data.email)
-    .eq('organization_id', profile.organization_id)
     .is('accepted_at', null)
     .maybeSingle();
 
@@ -163,17 +182,14 @@ export async function inviteMember(formData: z.infer<typeof inviteMemberSchema>)
     return { success: false, error: 'An invite has already been sent to this email.' };
   }
 
-  // Send Supabase invite with role + org in metadata
-  // Note: inviteUserByEmail requires service role key — use a separate admin client
-  const { createClient: createAdminClient } = await import('@supabase/supabase-js');
-  const adminClient = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const adminClient = createAdminClient();
 
   const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(parsed.data.email, {
     data: {
       role: parsed.data.role,
-      organization_id: profile.organization_id,
+      organization_id: parsed.data.orgId,
     },
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/invite`,
   });
 
   if (inviteError) return { success: false, error: inviteError.message };
@@ -182,7 +198,7 @@ export async function inviteMember(formData: z.infer<typeof inviteMemberSchema>)
   const { error: recordError } = await supabase.from('invites').insert({
     email: parsed.data.email,
     role: parsed.data.role,
-    organization_id: profile.organization_id,
+    organization_id: parsed.data.orgId,
     invited_by: user.id,
   });
 

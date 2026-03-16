@@ -16,6 +16,7 @@ export const signInWithGoogle = async (): Promise<ActionResult> => {
   });
 
   if (error) return { success: false, error: error.message };
+
   if (data.url) redirect(data.url);
   return { success: true };
 };

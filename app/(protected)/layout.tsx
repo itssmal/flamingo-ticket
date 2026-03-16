@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { SessionProvider } from '@/lib/context/session-context';
 import { Suspense } from 'react';
 import LayoutLoading from '@/components/layout/layout-loading';
+import { getActiveOrgId } from '@/utils/active-org';
 
 async function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -16,10 +17,16 @@ async function DashboardLayoutContent({ children }: { children: React.ReactNode 
     redirect('/auth/login');
   }
 
+  const activeOrgId = await getActiveOrgId(sessionData.organizations);
+
+  if (!activeOrgId) {
+    redirect('/auth/login');
+  }
+
   return (
     <SessionProvider value={sessionData}>
       <div className="flex h-screen bg-background overflow-hidden">
-        <Sidebar />
+        <Sidebar activeOrgId={activeOrgId} />
         <div className="flex flex-col flex-1 overflow-hidden">
           <TopBar />
           <main className="flex-1 overflow-y-auto p-6">{children}</main>

@@ -56,6 +56,84 @@ export type Database = {
           },
         ]
       }
+      invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_by: string
+          organization_id: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_by: string
+          organization_id: string
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          organization_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          organization_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -85,9 +163,8 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string
-          full_name: string
+          full_name: string | null
           id: string
-          organization_id: string
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
@@ -95,9 +172,8 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email: string
-          full_name: string
-          id?: string
-          organization_id?: string
+          full_name?: string | null
+          id: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -105,21 +181,12 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string
-          full_name?: string
+          full_name?: string | null
           id?: string
-          organization_id?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       tickets: {
         Row: {
@@ -187,11 +254,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_org_id: { Args: never; Returns: string }
-      get_user_role: {
-        Args: never
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_member_of: { Args: { org_id: string }; Returns: boolean }
     }
     Enums: {
       ticket_priority: "low" | "medium" | "high" | "urgent"

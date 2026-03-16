@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/utils';
-import { LayoutDashboard, Users, Settings, Ticket } from 'lucide-react';
-import { ThemeSwitcher } from '@/components/theme-switcher';
+import { LayoutDashboard, Users, Settings, Ticket, Building2 } from 'lucide-react';
 import { useSessionContext } from '@/lib/context/session-context';
+import { useMemo } from 'react';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -13,18 +13,20 @@ const navItems = [
   { href: '/admin', label: 'Admin', icon: Users, adminOnly: true },
 ];
 
-export const Sidebar = () => {
+type Props = { activeOrgId: string };
+export const Sidebar = ({ activeOrgId }: Props) => {
   const pathname = usePathname();
-  const { profile } = useSessionContext();
+  const { profile, organizations } = useSessionContext();
+
+  const activeOrg = useMemo(() => organizations.find((org) => org.id === activeOrgId), [organizations]);
 
   return (
     <aside className="w-60 flex flex-col border-r bg-card shrink-0">
-      <div className="p-4 border-b">
+      <div className="h-14 border-b flex my-auto px-4">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🦩</span>
+          <Building2 className="h-4 w-4" />
           <div className="min-w-0">
-            {/*<p className="font-semibold truncate text-sm">{profile.organizations?.name ?? 'Flamingo'}</p>*/}
-            <p className="font-semibold truncate text-sm">Flamingo</p>
+            <p className="font-semibold truncate text-sm">{activeOrg?.name ?? 'Flamingo'}</p>
             <p className="text-xs text-muted-foreground capitalize">{profile.role.replace('_', ' ')}</p>
           </div>
         </div>
@@ -51,8 +53,6 @@ export const Sidebar = () => {
           );
         })}
       </nav>
-
-      <ThemeSwitcher />
 
       <div className="p-2 border-t">
         <Link

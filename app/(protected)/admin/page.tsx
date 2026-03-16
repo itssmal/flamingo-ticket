@@ -1,36 +1,37 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-// import { InviteMemberForm } from "@/components/admin/invite-member-form";
+import { InviteMemberForm } from '@/components/features/admin/invite-member-form';
 import { formatDate } from '@/utils';
 import type { Metadata } from 'next';
+import { getSessionData } from '@/lib/queries/session';
+import { getMembers } from '@/lib/queries/members/get-members';
+import { getInvites } from '@/lib/queries/invites/get-invites';
+import { PendingInvites } from '@/components/features/admin/pending-invites';
+import { getActiveOrgId } from '@/utils/active-org';
 
 export const metadata: Metadata = { title: 'Admin – Flamingo' };
 
 export default async function AdminPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  const sessionData = await getSessionData(supabase);
 
-  const { data: profile } = await supabase.from('profiles').select('role, organization_id').eq('id', user.id).single();
+  if (!sessionData || sessionData.profile.role !== 'admin') {
+    redirect('/dashboard');
+  }
 
-  if (!profile || profile.role !== 'admin') redirect('/dashboard');
+  const activeOrgId = await getActiveOrgId(sessionData.organizations);
 
-  const [{ data: members }, { data: invites }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id, full_name, email, role, created_at')
-      .eq('organization_id', profile.organization_id)
-      .order('created_at', { ascending: true }),
-    supabase
-      .from('invites')
-      .select('id, email, role, accepted_at, created_at')
-      .eq('organization_id', profile.organization_id)
-      .order('created_at', { ascending: false }),
+  if (!activeOrgId) {
+    redirect('/dashboard');
+  }
+
+  const [membersResult, invitesResult] = await Promise.all([
+    getMembers(supabase, activeOrgId),
+    getInvites(supabase, activeOrgId),
   ]);
 
-  const pendingInvites = (invites ?? []).filter((i) => !i.accepted_at);
+  const pendingInvites = invitesResult.success ? (invitesResult?.data ?? []).filter((i) => !i.accepted_at) : [];
+  const members = membersResult.success ? (membersResult.data ?? []) : [];
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -42,30 +43,10 @@ export default async function AdminPage() {
       {/* Invite form */}
       <div className="rounded-lg border bg-card p-6 space-y-4">
         <h2 className="font-semibold">Invite a member</h2>
-        {/*<InviteMemberForm />*/}
+        <InviteMemberForm activeOrgId={activeOrgId} />
       </div>
 
-      {/* Pending invites */}
-      {pendingInvites.length > 0 && (
-        <div className="rounded-lg border bg-card">
-          <div className="p-4 border-b">
-            <h2 className="font-semibold">Pending invites</h2>
-          </div>
-          <div className="divide-y">
-            {pendingInvites.map((invite) => (
-              <div key={invite.id} className="flex items-center justify-between px-4 py-3 text-sm">
-                <div>
-                  <p className="font-medium">{invite.email}</p>
-                  <p className="text-muted-foreground text-xs">Sent {formatDate(invite.created_at)}</p>
-                </div>
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full capitalize">
-                  {invite.role.replace('_', ' ')}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {pendingInvites.length > 0 && <PendingInvites pendingInvites={pendingInvites} />}
 
       {/* Members list */}
       <div className="rounded-lg border bg-card">

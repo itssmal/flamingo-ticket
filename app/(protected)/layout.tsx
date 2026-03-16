@@ -1,30 +1,15 @@
 import { Sidebar } from '@/components/layout/sidebar';
 import { TopBar } from '@/components/layout/topbar';
-import { createClient } from '@/lib/supabase/server';
-import { getSessionData } from '@/lib/queries/session';
-import { redirect } from 'next/navigation';
 import { SessionProvider } from '@/lib/context/session-context';
 import { Suspense } from 'react';
 import LayoutLoading from '@/components/layout/layout-loading';
-import { getActiveOrgId } from '@/utils/active-org';
+import { requireAuth } from '@/lib/queries/auth';
 
 async function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-
-  const sessionData = await getSessionData(supabase);
-
-  if (!sessionData) {
-    redirect('/auth/login');
-  }
-
-  const activeOrgId = await getActiveOrgId(sessionData.organizations);
-
-  if (!activeOrgId) {
-    redirect('/auth/login');
-  }
+  const { session, activeOrgId } = await requireAuth();
 
   return (
-    <SessionProvider value={sessionData}>
+    <SessionProvider value={session}>
       <div className="flex h-screen bg-background overflow-hidden">
         <Sidebar activeOrgId={activeOrgId} />
         <div className="flex flex-col flex-1 overflow-hidden">

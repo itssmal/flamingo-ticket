@@ -57,7 +57,7 @@ export const PRIORITY_CONFIG: Record<TicketPriority, { label: string; color: str
   urgent: {
     label: 'Urgent',
     color: 'text-red-600',
-    bgColor: 'bg-red-50 dark:bg-red-950',
+    bgColor: 'bg-red-50 dark:bg-red-900',
   },
 };
 

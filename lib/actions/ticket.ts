@@ -23,16 +23,11 @@ export async function createTicket(formData: CreateTicketSchema): Promise<Action
 
   if (!user) return { success: false, error: 'Not authenticated' };
 
-  const { data: profile } = await supabase.from('profiles').select('organization_id').eq('id', user.id).single();
-
-  if (!profile) return { success: false, error: 'Profile not found' };
-
   const { data, error } = await supabase
     .from('tickets')
     .insert({
       ...parsed.data,
       creator_id: user.id,
-      organization_id: profile.organization_id,
     })
     .select()
     .single();

@@ -6,7 +6,7 @@ import { cn } from '@/utils';
 import { LayoutDashboard, Users, Settings, Ticket, Building2 } from 'lucide-react';
 import { useSessionContext } from '@/lib/context/session-context';
 import { useMemo } from 'react';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { OrganizationSelect } from '@/components/layout/organization-select';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -14,7 +14,10 @@ const navItems = [
   { href: '/admin', label: 'Admin', icon: Users, adminOnly: true },
 ];
 
-type Props = { activeOrgId: string };
+interface Props {
+  activeOrgId: string;
+}
+
 export const Sidebar = ({ activeOrgId }: Props) => {
   const pathname = usePathname();
   const { profile, organizations } = useSessionContext();
@@ -28,20 +31,7 @@ export const Sidebar = ({ activeOrgId }: Props) => {
           <Building2 className="h-4 w-4" />
 
           {organizations.length > 1 ? (
-            <Select value={activeOrgId}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Organization" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {organizations.map((org) => (
-                    <SelectItem value={org.id} key={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <OrganizationSelect organizations={organizations} activeOrgId={activeOrgId} />
           ) : (
             <div className="min-w-0">
               <p className="font-semibold truncate text-sm">{activeOrg?.name ?? 'Flamingo'}</p>

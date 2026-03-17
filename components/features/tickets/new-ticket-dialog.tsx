@@ -29,7 +29,7 @@ const NewTicketDialog = ({ open, members, orgId }: Props) => {
 
   const form = useForm<CreateTicketSchema>({
     resolver: zodResolver(createTicketSchema),
-    defaultValues: {
+    values: {
       title: '',
       description: '',
       priority: 'medium',

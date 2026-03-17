@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Organization } from '@/types';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCallback } from 'react';

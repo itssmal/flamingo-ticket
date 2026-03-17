@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { ROUTES } from '@/lib/constants/routes';
 
 export default function InviteCallbackPage() {
   const router = useRouter();
@@ -22,13 +23,13 @@ export default function InviteCallbackPage() {
         .setSession({ access_token: accessToken, refresh_token: refreshToken })
         .then(({ error }) => {
           if (error) {
-            router.replace('/auth/login?error=auth_callback_failed');
+            router.replace(`${ROUTES.LOGIN}?error=auth_callback_failed`);
           } else {
-            router.replace('/invite');
+            router.replace(ROUTES.INVITE);
           }
         });
     } else {
-      router.replace('/auth/login?error=auth_callback_failed');
+      router.replace(`${ROUTES.LOGIN}?error=auth_callback_failed`);
     }
   }, [router]);
 

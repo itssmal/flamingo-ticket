@@ -6,6 +6,7 @@ import { getMembers } from '@/lib/queries/members/get-members';
 import { getInvites } from '@/lib/queries/invites/get-invites';
 import { requireAuth } from '@/lib/queries/auth';
 import { PendingInvites } from '@/components/features/admin/pending-invites';
+import { ROUTES } from '@/lib/constants/routes';
 
 export const metadata: Metadata = { title: 'Admin – Flamingo' };
 
@@ -13,7 +14,7 @@ export default async function AdminPage() {
   const { supabase, session, activeOrgId } = await requireAuth();
 
   if (session.profile.role !== 'admin') {
-    redirect('/dashboard');
+    redirect(ROUTES.DASHBOARD);
   }
 
   const [membersResult, invitesResult] = await Promise.all([

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
 import type { ActionResult } from './auth';
+import { ROUTES } from '@/lib/constants/routes';
 
 const onboardingSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -93,7 +94,7 @@ export async function completeOnboarding(formData: z.infer<typeof onboardingSche
     return { success: false, error: memberError.message };
   }
 
-  redirect('/dashboard');
+  redirect(ROUTES.DASHBOARD);
 }
 
 // ─── Complete invite (invited user setting their name) ────────
@@ -150,7 +151,7 @@ export async function completeInvite(formData: z.infer<typeof inviteCompleteSche
     return { success: false, error: memberError.message };
   }
 
-  redirect('/dashboard');
+  redirect(ROUTES.DASHBOARD);
 }
 
 // ─── Invite a member (admin only) ────────────────────────────

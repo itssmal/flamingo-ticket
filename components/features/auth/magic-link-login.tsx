@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { ROUTES } from '@/lib/constants/routes';
 
 export default function MagicLinkLogin() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function MagicLinkLogin() {
     const result = await signInMagicLink({ email });
 
     if (result.success) {
-      router.push('/auth/check-email');
+      router.push(ROUTES.CHECK_EMAIL);
     } else {
       setError(result.error);
     }

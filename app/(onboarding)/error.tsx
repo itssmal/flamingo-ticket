@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/lib/constants/routes';
 
 export default function OnboardingError({
   error,
@@ -31,7 +32,7 @@ export default function OnboardingError({
           Try again
         </Button>
         <Button variant="outline" size="sm" asChild>
-          <Link href="/auth/login">Back to login</Link>
+          <Link href={ROUTES.LOGIN}>Back to login</Link>
         </Button>
       </div>
     </div>

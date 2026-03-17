@@ -7,11 +7,12 @@ import { LayoutDashboard, Users, Settings, Ticket, Building2 } from 'lucide-reac
 import { useSessionContext } from '@/lib/context/session-context';
 import { useMemo } from 'react';
 import { OrganizationSelect } from '@/components/layout/organization-select';
+import { ROUTES } from '@/lib/constants/routes';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/tickets', label: 'Tickets', icon: Ticket },
-  { href: '/admin', label: 'Admin', icon: Users, adminOnly: true },
+  { href: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
+  { href: ROUTES.TICKETS, label: 'Tickets', icon: Ticket },
+  { href: ROUTES.ADMIN, label: 'Admin', icon: Users, adminOnly: true },
 ];
 
 interface Props {
@@ -64,7 +65,7 @@ export const Sidebar = ({ activeOrgId }: Props) => {
 
       <div className="p-2 border-t">
         <Link
-          href="/settings"
+          href={ROUTES.SETTINGS}
           className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <Settings className="h-4 w-4" />

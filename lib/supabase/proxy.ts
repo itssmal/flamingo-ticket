@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { ROUTES } from '@/lib/constants/routes';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -39,24 +40,24 @@ export async function updateSession(request: NextRequest) {
   if (
     request.nextUrl.pathname !== '/' &&
     !claims &&
-    !request.nextUrl.pathname.startsWith('/auth/login') &&
+    !request.nextUrl.pathname.startsWith(ROUTES.LOGIN) &&
     !request.nextUrl.pathname.startsWith('/auth')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
+    url.pathname = ROUTES.LOGIN;
     return NextResponse.redirect(url);
   }
 
   const path = request.nextUrl.pathname;
 
-  const isAuthRoute = path.startsWith('/auth/login');
-  const isOnboarding = path.startsWith('/onboarding');
-  const isInvite = path.startsWith('/invite');
-  const isAuthCallback = path.startsWith('/auth/callback');
-  const isAuthConfirm = path.startsWith('/auth/confirm');
-  const isInviteCallback = path.startsWith('/auth/invite-callback');
-  const isCheckEmail = path.startsWith('/auth/check-email');
+  const isAuthRoute = path.startsWith(ROUTES.LOGIN);
+  const isOnboarding = path.startsWith(ROUTES.ONBOARDING);
+  const isInvite = path.startsWith(ROUTES.INVITE);
+  const isAuthCallback = path.startsWith(ROUTES.AUTH_CALLBACK);
+  const isAuthConfirm = path.startsWith(ROUTES.AUTH_CONFIRM);
+  const isInviteCallback = path.startsWith(ROUTES.INVITE_CALLBACK);
+  const isCheckEmail = path.startsWith(ROUTES.CHECK_EMAIL);
   const isPublic = isAuthRoute || isAuthCallback || isAuthConfirm || isInviteCallback || isCheckEmail;
 
   const {
@@ -66,14 +67,14 @@ export async function updateSession(request: NextRequest) {
   // Not logged in → send to login
   if (!user && !isPublic && !isInvite) {
     const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
+    url.pathname = ROUTES.LOGIN;
     return NextResponse.redirect(url);
   }
 
   // Logged in on login page → go to dashboard
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = ROUTES.DASHBOARD;
     return NextResponse.redirect(url);
   }
 
@@ -85,7 +86,7 @@ export async function updateSession(request: NextRequest) {
       const role = user.user_metadata?.role;
       const url = request.nextUrl.clone();
       // Invited user → short name form; self-signup → full onboarding
-      url.pathname = role && role !== 'admin' ? '/invite' : '/onboarding';
+      url.pathname = role && role !== 'admin' ? ROUTES.INVITE : ROUTES.ONBOARDING;
       return NextResponse.redirect(url);
     }
   }
@@ -96,7 +97,7 @@ export async function updateSession(request: NextRequest) {
 
     if (profile) {
       const url = request.nextUrl.clone();
-      url.pathname = '/dashboard';
+      url.pathname = ROUTES.DASHBOARD;
       return NextResponse.redirect(url);
     }
   }

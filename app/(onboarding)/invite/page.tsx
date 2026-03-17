@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { InviteCompleteForm } from '@/components/features/onboarding/invite-complete-form';
 import type { Metadata } from 'next';
+import { ROUTES } from '@/lib/constants/routes';
 
 export const metadata: Metadata = { title: 'Complete your account – Flamingo' };
 
@@ -10,14 +11,14 @@ export default async function InvitePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect('/auth/login');
+  if (!user) redirect(ROUTES.LOGIN);
 
   const role = user.user_metadata?.role;
   const organizationId = user.user_metadata?.organization_id;
 
   // If no invite metadata, this is a stale/invalid link
   if (!role || !organizationId) {
-    redirect('/auth/login?error=invalid_invite');
+    redirect(`${ROUTES.LOGIN}?error=invalid_invite`);
   }
 
   // Fetch org name to show a friendly welcome

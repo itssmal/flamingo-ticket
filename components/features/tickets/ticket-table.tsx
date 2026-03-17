@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { TicketWithRelations, TicketFilters } from '@/types/ticket';
 import { formatRelativeTime, PRIORITY_CONFIG, STATUS_CONFIG, cn } from '@/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ROUTES } from '@/lib/constants/routes';
 
 interface TicketTableProps {
   tickets: TicketWithRelations[];
@@ -40,7 +41,7 @@ export function TicketTable({ tickets, count, filters }: TicketTableProps) {
                   <tr key={ticket.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
                       <Link
-                        href={`/tickets/${ticket.id}`}
+                        href={ROUTES.TICKET(ticket.id)}
                         className="font-medium hover:text-primary transition-colors line-clamp-1"
                       >
                         {ticket.title}

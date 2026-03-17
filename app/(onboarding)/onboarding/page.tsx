@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { OnboardingForm } from '@/components/features/onboarding/onboarding-form';
 import type { Metadata } from 'next';
+import { ROUTES } from '@/lib/constants/routes';
 
 export const metadata: Metadata = { title: 'Set up your organization – Flamingo' };
 
@@ -11,7 +12,7 @@ export default async function OnboardingPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect('/auth/login');
+  if (!user) redirect(ROUTES.LOGIN);
 
   return (
     <div className="w-full max-w-lg space-y-8">

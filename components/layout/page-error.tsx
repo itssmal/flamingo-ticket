@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/lib/constants/routes';
 
 interface PageErrorProps {
   title?: string;
@@ -33,7 +34,7 @@ export function PageError({
           </Button>
         )}
         <Button variant="outline" size="sm" asChild>
-          <Link href="/dashboard">Go to dashboard</Link>
+          <Link href={ROUTES.DASHBOARD}>Go to dashboard</Link>
         </Button>
       </div>
     </div>

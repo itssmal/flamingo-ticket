@@ -118,25 +118,37 @@ export async function completeInvite(formData: z.infer<typeof inviteCompleteSche
     return { success: false, error: 'Invalid invite. Please request a new one from your admin.' };
   }
 
+  const admin = createAdminClient();
+
   // Mark invite as accepted
-  await supabase
+  await admin
     .from('invites')
     .update({ accepted_at: new Date().toISOString() })
     .eq('email', user.email!)
     .eq('organization_id', organization_id)
     .is('accepted_at', null);
 
-  // Create profile
-  const { error: profileError } = await supabase.from('profiles').insert({
+  // Create profile (no organization_id column on profiles — membership is via organization_members)
+  const { error: profileError } = await admin.from('profiles').insert({
     id: user.id,
     email: user.email!,
     full_name: parsed.data.full_name,
     avatar_url: user.user_metadata?.avatar_url ?? null,
     role,
-    organization_id,
   });
 
   if (profileError) return { success: false, error: profileError.message };
+
+  // Create membership
+  const { error: memberError } = await admin.from('organization_members').insert({
+    user_id: user.id,
+    organization_id,
+  });
+
+  if (memberError) {
+    await admin.from('profiles').delete().eq('id', user.id);
+    return { success: false, error: memberError.message };
+  }
 
   redirect('/dashboard');
 }
@@ -189,7 +201,7 @@ export async function inviteMember(formData: z.infer<typeof inviteMemberSchema>)
       role: parsed.data.role,
       organization_id: parsed.data.orgId,
     },
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/invite`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/invite-callback`,
   });
 
   if (inviteError) return { success: false, error: inviteError.message };

@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { ticketKeys } from '@/lib/queries/ticket/keys';
 import { AssigneeSelect } from '@/components/features/tickets/assignee-select';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Props {
   open: boolean;
@@ -91,19 +91,13 @@ const NewTicketDialog = ({ open, members, orgId }: Props) => {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Description</FieldLabel>
-                <textarea
+                <Textarea
                   {...field}
                   id={field.name}
                   value={field.value ?? ''}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
                   rows={4}
                   aria-invalid={fieldState.invalid}
                   placeholder="Provide more details about the issue..."
-                  className={cn(
-                    'w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none resize-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
-                  )}
                 />
                 <FieldDescription>Optional. Add steps to reproduce, expected vs actual behavior.</FieldDescription>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

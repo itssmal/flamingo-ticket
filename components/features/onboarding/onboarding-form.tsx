@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { completeOnboarding } from '@/lib/actions/onboarding';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Field, FieldLabel, FieldDescription, FieldError } from '@/components/ui/field';
 
 interface OnboardingFormProps {
   defaultEmail: string;
@@ -65,30 +68,24 @@ export function OnboardingForm({ defaultEmail, defaultName }: OnboardingFormProp
       </div>
 
       <div className="space-y-4">
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium">Email</label>
-          <input
-            type="email"
-            value={defaultEmail}
-            disabled
-            className="w-full rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed"
-          />
-        </div>
+        <Field>
+          <FieldLabel>Email</FieldLabel>
+          <Input type="email" value={defaultEmail} disabled readOnly autoComplete="off" />
+        </Field>
 
-        <div className="space-y-1.5">
-          <label htmlFor="full_name" className="text-sm font-medium">
+        <Field>
+          <FieldLabel htmlFor="full_name">
             Full name <span className="text-destructive">*</span>
-          </label>
-          <input
+          </FieldLabel>
+          <Input
             id="full_name"
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Jane Smith"
             required
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
-        </div>
+        </Field>
       </div>
 
       <hr className="border-border" />
@@ -100,28 +97,29 @@ export function OnboardingForm({ defaultEmail, defaultName }: OnboardingFormProp
       </div>
 
       <div className="space-y-4">
-        <div className="space-y-1.5">
-          <label htmlFor="org_name" className="text-sm font-medium">
+        <Field>
+          <FieldLabel htmlFor="org_name">
             Organization name <span className="text-destructive">*</span>
-          </label>
-          <input
+          </FieldLabel>
+          <Input
             id="org_name"
             type="text"
             value={orgName}
             onChange={(e) => handleOrgNameChange(e.target.value)}
             placeholder="Acme Corp"
             required
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
-          <label htmlFor="org_slug" className="text-sm font-medium">
+        <Field>
+          <FieldLabel htmlFor="org_slug">
             URL slug <span className="text-destructive">*</span>
-          </label>
-          <div className="flex rounded-md border overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-            <span className="bg-muted px-3 py-2 text-sm text-muted-foreground border-r shrink-0">flamingo.app/</span>
-            <input
+          </FieldLabel>
+          <div className="flex rounded-lg border overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+            <span className="bg-muted px-2.5 py-1 text-sm text-muted-foreground border-r shrink-0 flex items-center">
+              flamingo.app/
+            </span>
+            <Input
               id="org_slug"
               type="text"
               value={orgSlug}
@@ -129,22 +127,18 @@ export function OnboardingForm({ defaultEmail, defaultName }: OnboardingFormProp
               placeholder="acme-corp"
               required
               pattern="[a-z0-9-]+"
-              className="flex-1 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none"
+              className="border-0 rounded-none focus-visible:ring-0 focus-visible:border-0"
             />
           </div>
-          <p className="text-xs text-muted-foreground">Lowercase letters, numbers, and hyphens only.</p>
-        </div>
+          <FieldDescription>Lowercase letters, numbers, and hyphens only.</FieldDescription>
+        </Field>
       </div>
 
-      {error && <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">{error}</p>}
+      {error && <FieldError errors={[{ message: error }]} />}
 
-      <button
-        type="submit"
-        disabled={loading || !fullName || !orgName || !orgSlug}
-        className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-      >
+      <Button type="submit" disabled={loading || !fullName || !orgName || !orgSlug} className="w-full">
         {loading ? 'Setting up...' : 'Create organization →'}
-      </button>
+      </Button>
     </form>
   );
 }

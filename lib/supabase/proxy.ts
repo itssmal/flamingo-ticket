@@ -55,7 +55,9 @@ export async function updateSession(request: NextRequest) {
   const isInvite = path.startsWith('/invite');
   const isAuthCallback = path.startsWith('/auth/callback');
   const isAuthConfirm = path.startsWith('/auth/confirm');
-  const isPublic = isAuthRoute || isAuthCallback || isAuthConfirm;
+  const isInviteCallback = path.startsWith('/auth/invite-callback');
+  const isCheckEmail = path.startsWith('/auth/check-email');
+  const isPublic = isAuthRoute || isAuthCallback || isAuthConfirm || isInviteCallback || isCheckEmail;
 
   const {
     data: { user },

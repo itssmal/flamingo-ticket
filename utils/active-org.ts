@@ -6,6 +6,8 @@ export const getActiveOrgId = async (organizations: Array<Organization>): Promis
   const cookieStore = await cookies();
   const fromCookie = cookieStore.get(COOKIES.ACTIVE_ORG_ID)?.value;
 
-  if (fromCookie) return fromCookie;
+  const isOrgAllowed = organizations.some((org) => org.id === fromCookie);
+
+  if (fromCookie && isOrgAllowed) return fromCookie;
   return organizations[0]?.id ?? null;
 };

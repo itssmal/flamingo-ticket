@@ -7,6 +7,7 @@ import { formatRelativeTime, getInitials } from '@/utils';
 import type { CommentWithAuthor } from '@/types/comment';
 import { Kbd } from '@/components/ui/kbd';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface CommentThreadProps {
   ticketId: string;
@@ -70,7 +71,7 @@ export function CommentThread({ ticketId, initialData }: CommentThreadProps) {
 
       <div className="p-4 border-t">
         <form onSubmit={handleSubmit} className="space-y-3">
-          <textarea
+          <Textarea
             value={content}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -81,7 +82,6 @@ export function CommentThread({ ticketId, initialData }: CommentThreadProps) {
             onChange={(e) => setContent(e.target.value)}
             placeholder="Add a comment..."
             rows={3}
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
           />
           {mutationError && <p className="text-sm text-destructive">Failed to post comment. Please try again.</p>}
           <div className="flex justify-end">

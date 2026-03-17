@@ -1,7 +1,7 @@
 'use client';
 
 import { LogOut } from 'lucide-react';
-import { signOut } from '@/lib/actions/auth';
+import { signOut } from '@/lib/actions/sign-out';
 import { getInitials } from '@/utils';
 import { useSessionContext } from '@/lib/context/session-context';
 import { ThemeSwitcher } from '@/components/theme-switcher';

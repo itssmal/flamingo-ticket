@@ -3,6 +3,8 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import type { TicketFilters } from '@/types/ticket';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface TicketFiltersBarProps {
   filters: TicketFilters;
@@ -23,56 +25,67 @@ export function TicketFiltersBar({ filters }: TicketFiltersBarProps) {
     [router, pathname, searchParams],
   );
 
+  const updateSort = useCallback(
+    (value: string) => {
+      const [sort_by, sort_order] = value.split('_');
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('sort_by', sort_by);
+      params.set('sort_order', sort_order);
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [router, pathname, searchParams],
+  );
+
   return (
     <div className="flex flex-wrap gap-3 items-center">
-      <input
+      <Input
         type="search"
         placeholder="Search tickets..."
         defaultValue={filters.search}
         onChange={(e) => updateFilter('search', e.target.value)}
-        className="rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring w-56"
+        className="w-56"
       />
 
-      <select
-        value={filters.status ?? 'all'}
-        onChange={(e) => updateFilter('status', e.target.value)}
-        className="rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-      >
-        <option value="all">All statuses</option>
-        <option value="open">Open</option>
-        <option value="in_progress">In Progress</option>
-        <option value="resolved">Resolved</option>
-        <option value="closed">Closed</option>
-      </select>
+      <Select value={filters.status ?? 'all'} onValueChange={(v) => updateFilter('status', v)}>
+        <SelectTrigger className="w-auto">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All statuses</SelectItem>
+          <SelectItem value="open">Open</SelectItem>
+          <SelectItem value="in_progress">In Progress</SelectItem>
+          <SelectItem value="resolved">Resolved</SelectItem>
+          <SelectItem value="closed">Closed</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <select
-        value={filters.priority ?? 'all'}
-        onChange={(e) => updateFilter('priority', e.target.value)}
-        className="rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-      >
-        <option value="all">All priorities</option>
-        <option value="urgent">Urgent</option>
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="low">Low</option>
-      </select>
+      <Select value={filters.priority ?? 'all'} onValueChange={(v) => updateFilter('priority', v)}>
+        <SelectTrigger className="w-auto">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All priorities</SelectItem>
+          <SelectItem value="urgent">Urgent</SelectItem>
+          <SelectItem value="high">High</SelectItem>
+          <SelectItem value="medium">Medium</SelectItem>
+          <SelectItem value="low">Low</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <select
+      <Select
         value={`${filters.sort_by ?? 'created_at'}_${filters.sort_order ?? 'desc'}`}
-        onChange={(e) => {
-          const [sort_by, sort_order] = e.target.value.split('_');
-          const params = new URLSearchParams(searchParams.toString());
-          params.set('sort_by', sort_by);
-          params.set('sort_order', sort_order);
-          router.push(`${pathname}?${params.toString()}`);
-        }}
-        className="rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        onValueChange={updateSort}
       >
-        <option value="created_at_desc">Newest first</option>
-        <option value="created_at_asc">Oldest first</option>
-        <option value="updated_at_desc">Recently updated</option>
-        <option value="priority_desc">Priority (high–low)</option>
-      </select>
+        <SelectTrigger className="w-auto">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="created_at_desc">Newest first</SelectItem>
+          <SelectItem value="created_at_asc">Oldest first</SelectItem>
+          <SelectItem value="updated_at_desc">Recently updated</SelectItem>
+          <SelectItem value="priority_desc">Priority (high–low)</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

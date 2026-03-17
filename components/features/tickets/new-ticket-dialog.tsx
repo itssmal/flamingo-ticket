@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { ticketKeys } from '@/lib/queries/ticket/keys';
+import { AssigneeSelect } from '@/components/features/tickets/assignee-select';
 
 interface Props {
   open: boolean;
@@ -144,23 +145,7 @@ const NewTicketDialog = ({ open, members, orgId }: Props) => {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>Assign To</FieldLabel>
-                    <Select
-                      value={field.value ?? '__unassigned__'}
-                      onValueChange={(v) => field.onChange(v === '__unassigned__' ? null : v)}
-                      onOpenChange={(open) => !open && field.onBlur()}
-                    >
-                      <SelectTrigger id={field.name} className="w-full" aria-invalid={fieldState.invalid}>
-                        <SelectValue placeholder="Unassigned" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__unassigned__">Unassigned</SelectItem>
-                        {members.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.full_name ?? m.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <AssigneeSelect options={members} field={field} fieldState={fieldState} />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}

@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { requireAuth } from '@/lib/queries/auth';
 import { getTicketById } from '@/lib/queries/ticket/get-ticket-by-id';
 import { getCommentsByTicketId } from '@/lib/queries/comment/get-comments';
+import { getMembers } from '@/lib/queries/members/get-members';
 import { createClient } from '@/lib/supabase/server';
 
 interface TicketPageProps {
@@ -19,19 +20,22 @@ export async function generateMetadata({ params }: TicketPageProps): Promise<Met
 }
 
 export default async function TicketPage({ params }: TicketPageProps) {
-  const { supabase } = await requireAuth();
+  const { supabase, activeOrgId } = await requireAuth();
   const { id } = await params;
 
-  const [ticket, comments] = await Promise.all([
+  const [ticket, comments, membersResult] = await Promise.all([
     getTicketById(supabase, id).catch(() => null),
     getCommentsByTicketId(supabase, id),
+    getMembers(supabase, activeOrgId),
   ]);
 
   if (!ticket) notFound();
 
+  const members = membersResult.success ? membersResult.data : [];
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <TicketDetailView ticketId={id} initialData={ticket} />
+      <TicketDetailView ticketId={id} initialData={ticket} initialMembers={members} />
       <CommentThread ticketId={id} initialData={comments} />
     </div>
   );

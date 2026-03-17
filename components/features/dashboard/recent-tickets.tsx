@@ -20,7 +20,7 @@ export function RecentTickets({ tickets }: RecentTicketsProps) {
       {tickets.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground text-sm">
           No tickets yet.{' '}
-          <Link href="/tickets/new" className="text-primary hover:underline">
+          <Link href="/tickets?new=1" className="text-primary hover:underline">
             Create one
           </Link>
         </div>

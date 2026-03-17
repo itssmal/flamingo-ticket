@@ -1,65 +1,55 @@
 'use client';
 
-import { useState, useOptimistic, useTransition } from 'react';
-import { createComment } from '@/lib/actions/comment';
+import { useState } from 'react';
+import { useSessionContext } from '@/lib/context/session-context';
+import { useComments, useAddComment } from '@/lib/queries/comment/use-comments';
 import { formatRelativeTime, getInitials } from '@/utils';
 import type { CommentWithAuthor } from '@/types/comment';
+import { Kbd } from '@/components/ui/kbd';
+import { Button } from '@/components/ui/button';
 
 interface CommentThreadProps {
-  comments: CommentWithAuthor[];
   ticketId: string;
-  currentUserId: string;
+  initialData: CommentWithAuthor[];
 }
 
-export function CommentThread({ comments, ticketId, currentUserId }: CommentThreadProps) {
-  const [content, setContent] = useState('');
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+export function CommentThread({ ticketId, initialData }: CommentThreadProps) {
+  const { user, profile } = useSessionContext();
+  const { data: comments = [] } = useComments(ticketId, initialData);
+  const { mutate: addComment, isPending, error: mutationError } = useAddComment(ticketId);
 
-  const [optimisticComments, addOptimisticComment] = useOptimistic(comments, (state, newComment: CommentWithAuthor) => [
-    ...state,
-    newComment,
-  ]);
+  const [content, setContent] = useState('');
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!content.trim()) return;
 
-    const tempComment: CommentWithAuthor = {
-      id: `temp-${Date.now()}`,
+    addComment({
       content: content.trim(),
-      ticket_id: ticketId,
-      author_id: currentUserId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      author: { id: currentUserId, full_name: 'You', avatar_url: null, email: '' },
-    };
+      author: {
+        id: user.id,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+        email: profile.email,
+      },
+    });
 
     setContent('');
-    setError(null);
-
-    startTransition(async () => {
-      addOptimisticComment(tempComment);
-      const result = await createComment({ content: tempComment.content, ticket_id: ticketId });
-      if (!result.success) {
-        setError(result.error);
-      }
-    });
   }
 
   return (
     <div className="rounded-lg border bg-card">
       <div className="p-4 border-b">
         <h2 className="font-semibold">
-          Comments <span className="text-muted-foreground font-normal text-sm">({optimisticComments.length})</span>
+          Comments <span className="text-muted-foreground font-normal text-sm">({comments.length})</span>
         </h2>
       </div>
 
       <div className="divide-y">
-        {optimisticComments.length === 0 ? (
+        {comments.length === 0 ? (
           <p className="p-6 text-center text-sm text-muted-foreground">No comments yet. Be the first to respond.</p>
         ) : (
-          optimisticComments.map((comment) => (
+          comments.map((comment) => (
             <div key={comment.id} className="p-4 flex gap-3">
               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium shrink-0">
                 {getInitials(comment.author?.full_name)}
@@ -82,20 +72,23 @@ export function CommentThread({ comments, ticketId, currentUserId }: CommentThre
         <form onSubmit={handleSubmit} className="space-y-3">
           <textarea
             value={content}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Add a comment..."
             rows={3}
             className="w-full rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
           />
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {mutationError && <p className="text-sm text-destructive">Failed to post comment. Please try again.</p>}
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={!content.trim() || isPending}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
+            <Button type="submit" disabled={!content.trim() || isPending}>
               {isPending ? 'Posting...' : 'Post Comment'}
-            </button>
+              <Kbd>⌘ + ⏎</Kbd>
+            </Button>
           </div>
         </form>
       </div>

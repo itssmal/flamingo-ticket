@@ -1,6 +1,5 @@
 import { ActionResult, Organization, Profile } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { COOKIES } from '@/lib/constants/cookies';
 
 export async function getOrganizations(
   supabase: SupabaseClient,
@@ -12,10 +11,8 @@ export async function getOrganizations(
   if (role === 'admin') {
     const { data, error } = await supabase.from('organizations').select().order('name', { ascending: true });
 
-    console.log('data', data);
     if (error) return { success: false, error: error.message };
 
-    // await setDefaultActiveOrg(data[0].id);
     return { success: true, data: data ?? [] };
   }
 
@@ -25,14 +22,11 @@ export async function getOrganizations(
 
     if (error) return { success: false, error: error.message };
 
-    console.log('technician', data);
+    const orgs = ((data as unknown as Array<{ organizations: Organization }>)
+      ?.map((row) => row.organizations)
+      .filter(Boolean) ?? []) as Organization[];
 
-    // const orgs = (data as Array<{ organizations: Array<Organization> }>)
-    //   ?.map((row) => row.organizations)
-    //   .filter(Boolean) as Organization[];
-    // await setDefaultActiveOrg(data[0].organizations[0].id);
-
-    return { success: true, data: data[0].organizations ?? [] };
+    return { success: true, data: orgs ?? [] };
   }
 
   const { data, error } = await supabase.from('organization_members').select('organizations(*)').eq('user_id', id);

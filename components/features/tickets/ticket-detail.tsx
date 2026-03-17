@@ -1,35 +1,31 @@
 'use client';
 
-import { useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import { updateTicket } from '@/lib/actions/ticket';
+import { useSessionContext } from '@/lib/context/session-context';
+import { useTicketDetail, useUpdateTicket } from '@/lib/queries/ticket/use-ticket-detail';
 import { formatDate, PRIORITY_CONFIG, STATUS_CONFIG, getInitials, cn } from '@/utils';
-import type { UserRole, TicketStatus, TicketPriority } from '@/types';
+import type { TicketStatus, TicketPriority } from '@/types';
 import type { TicketWithRelations } from '@/types/ticket';
 
 interface TicketDetailViewProps {
-  ticket: TicketWithRelations;
-  currentUserId: string;
-  userRole: UserRole;
+  ticketId: string;
+  initialData: TicketWithRelations;
 }
 
-export function TicketDetailView({ ticket, currentUserId, userRole }: TicketDetailViewProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const canEdit = userRole === 'admin' || userRole === 'technician' || ticket.creator_id === currentUserId;
+export function TicketDetailView({ ticketId, initialData }: TicketDetailViewProps) {
+  const { user, profile } = useSessionContext();
+  const { data: ticket } = useTicketDetail(ticketId, initialData);
+  const { mutate: update, isPending } = useUpdateTicket(ticketId);
+
+  if (!ticket) return null;
+
+  const canEdit = profile.role === 'admin' || profile.role === 'technician' || ticket.creator_id === user.id;
 
   function handleStatusChange(status: TicketStatus) {
-    startTransition(async () => {
-      await updateTicket(ticket.id, { status });
-      router.refresh();
-    });
+    update({ status });
   }
 
   function handlePriorityChange(priority: TicketPriority) {
-    startTransition(async () => {
-      await updateTicket(ticket.id, { priority });
-      router.refresh();
-    });
+    update({ priority });
   }
 
   const priority = PRIORITY_CONFIG[ticket.priority];
